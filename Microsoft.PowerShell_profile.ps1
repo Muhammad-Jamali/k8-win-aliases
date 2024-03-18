@@ -1,0 +1,3 @@
+Import-Module ExchangeOnlineManagement
+Import-Module posh-git
+Set-PSReadLineOption -PredictionViewStyle ListView

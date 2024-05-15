@@ -42,18 +42,27 @@ function kspo {
         [string[]]$AdditionalParams
     )
     
-    while ($Watch) {
+    function performKubectl {
+        if ($Keyword -ne "") {
+            & kubectl get pods @AdditionalParams | Select-String $Keyword
+        } else {
+            & kubectl get pods @AdditionalParams
+        }
+    }
+
+     while ($Watch) {
         Clear-Host
-        kspo $Keyword @AdditionalParams
+        performKubectl
         Start-Sleep -Seconds 3
     }
-    if ($Keyword -ne ""){
-       & kubectl get pods @AdditionalParams | Select-String $Keyword
-	return
-    }
-   & kubectl get pods @AdditionalParams
-}
 
+     if ($AdditionalParams.Length -eq 0) {
+        Write-Output "No additional parameters provided. Ensure correct usage of kubectl command."
+        return
+    }
+
+     performKubectl
+}
 
 function ksdpo {
     param (

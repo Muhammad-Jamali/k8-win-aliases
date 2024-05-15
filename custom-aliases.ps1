@@ -22,28 +22,36 @@ function certgen {
 	Export-PfxCertificate -cert "cert:\localmachine\my\$thumb" -FilePath $Dir/test.pfx -Password $SSpwd
 }
 function nsl {
-	param ([Parameter(Position = 0)] [string]$Domain, [Alias("w")] [switch]$Watch = $false) 
+	param ([Parameter(Position = 0)] [string]$Domain, [Alias("w")] [switch]$Watch = $false, [Alias("t")] [string]$TimeOut = 2) 
 	while ($Watch) {
 		clear
 		nslookup $Domain
-		Start-Sleep -Seconds 2
+		Start-Sleep -Seconds $TimeOut
 	}
 	nslookup $Domain
 }
-function kspo { 
-	param ([Parameter(Position = 0)] [string]$Keyword, [Alias("w")] [switch]$Watch = $false) 
-	while ($Watch) {
-		clear
-		kspo $Keyword
-		Start-Sleep -Seconds 3
-	}
-	echo $args
-	echo $Keyword
-	if ($Keyword -eq "") {
-		kgpo
-		return
-	}
-	kgpo | Select-String $Keyword
+function kspo {
+    param (
+        [Parameter(Position = 0)]
+        [string]$Keyword = "",
+
+        [Alias("w")]
+        [switch]$Watch = $false,
+
+        [Parameter(ValueFromRemainingArguments = $true)]
+        [string[]]$AdditionalParams
+    )
+    
+    while ($Watch) {
+        Clear-Host
+        kspo $Keyword @AdditionalParams
+        Start-Sleep -Seconds 3
+    }
+    if ($Keyword -ne ""){
+       & kubectl get pods @AdditionalParams | Select-String $Keyword
+	return
+    }
+   & kubectl get pods @AdditionalParams
 }
 
 

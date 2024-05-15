@@ -56,55 +56,95 @@ function kspo {
 
 
 function ksdpo {
-	param ([Parameter(Position = 0, Mandatory = $true)] [string]$Keyword, [Alias("c")] [string]$Container = "")
-	$pod = $((kgpo | Select-String $Keyword) -Split "\s+")[0]
-	if ($Container -eq "") {
-		kdpo $pod
-		return
-	}
-	kdpo $pod -c $Container
+    param (
+        [Parameter(Position = 0, Mandatory = $true)]
+        [string]$Keyword,
+        
+        [Parameter(ValueFromRemainingArguments = $true)]
+        [string[]]$AdditionalParams
+    )
+
+    $filteredResults = kubectl get pods @AdditionalParams | Select-String $Keyword
+    if ($filteredResults) {
+        $pod = $filteredResults -Split "\s+" | Select-Object -First 1
+        if ($pod) {
+            kdpo $pod @AdditionalParams
+        } else {
+            Write-Output "No valid pod data found."
+        }
+    } else {
+        Write-Output "No pods match the keyword '$Keyword'."
+    }
 }
+
 
 
 function ksrmpo {
 	param (
 		[Parameter(Position = 0, Mandatory = $true)]
 		[string]$Keyword,
+		
 		[Alias("r")]
-		[switch]$Recursive = $false
+		[switch]$Recursive = $false,
+	        
+		[Parameter(ValueFromRemainingArguments = $true)]
+        	[string[]]$AdditionalParams
 	)
 
-	$pods = (kgpo | Select-String $Keyword) -Split "\n"
-
+	$pods = (kubectl get pods @AdditionalParams | Select-String $Keyword) -Split "\n"
 	$pods | ForEach-Object {
 		$podName = ($_ -Split "\s+")[0]
 		if ($podName -ne "NAME") {
-			krmpo $podName
-	  if (-not $Recursive) {
+			krmpo $podName $AdditionalParams
+		  if (-not $Recursive) {
 				return
-			}
+	          }
 		}
 	}
 }
 
 function kslo {
-	param ([Parameter(Position = 0, Mandatory = $true)] [string]$Keyword, [Alias("c")] [string]$Container = "")
-	$pod = $((kgpo | Select-String $Keyword) -Split "\s+")[0]
-	if ($Container -eq "") {
-		klo $pod
-		return
-	}
-	klo $pod -c $Container
+	param (
+		[Parameter(Position = 0, Mandatory = $true)] 
+		[string]$Keyword,
+		[Parameter(Mandatory = $true)] 
+		[string]$Container,
+		[Parameter(ValueFromRemainingArguments = $true)]
+        	[string[]]$AdditionalParams
+	)
+	$filteredResults = kubectl get pods @AdditionalParams | Select-String $Keyword
+	if ($filteredResults) {
+        	$pod = $filteredResults -Split "\s+" | Select-Object -First 1
+        	if ($pod) {
+	            klo $pod -c $Container @AdditionalParams
+        	} else {
+	            Write-Output "No valid pod data found."
+        	}
+         } else {
+      	  Write-Output "No pods match the keyword '$Keyword'."
+	 }
 }
 
 function ksex {
-	param ([Parameter(Position = 0, Mandatory = $true)] [string]$Keyword, [Alias("c")] [string]$Container = "")
-	$pod = $((kgpo | Select-String $Keyword) -Split "\s+")[0]
-	if ($Container -eq "") {
-		kex $pod -- bash
-		return
-	}
-	kex $pod -c $Container -- bash
+	param (
+		[Parameter(Position = 0, Mandatory = $true)] 
+		[string]$Keyword,
+		[Parameter(Mandatory = $true)] 
+		[string]$Container,
+		[Parameter(ValueFromRemainingArguments = $true)]
+        	[string[]]$AdditionalParams
+	)
+	$filteredResults = kubectl get pods @AdditionalParams | Select-String $Keyword
+	if ($filteredResults) {
+        	$pod = $filteredResults -Split "\s+" | Select-Object -First 1
+        	if ($pod) {
+	            kex $pod -c $Container @AdditionalParams -- bash
+        	} else {
+	            Write-Output "No valid pod data found."
+        	}
+         } else {
+      	  Write-Output "No pods match the keyword '$Keyword'."
+	 }
 }
 
 

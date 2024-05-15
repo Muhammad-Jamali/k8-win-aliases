@@ -56,11 +56,6 @@ function kspo {
         Start-Sleep -Seconds 3
     }
 
-     if ($AdditionalParams.Length -eq 0) {
-        Write-Output "No additional parameters provided. Ensure correct usage of kubectl command."
-        return
-    }
-
      performKubectl
 }
 
